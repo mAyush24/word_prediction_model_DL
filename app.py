@@ -29,7 +29,23 @@ def predict_next_word(text):
 
     return ""
 
+def generate_text(seed_text, next_words=3):
+    for _ in range(next_words):
+        token_list = tokenizer.texts_to_sequences([seed_text])[0]
+        token_list = pad_sequences([token_list], maxlen=max_sequence_len-1, padding='pre')
 
+        predicted = model.predict(token_list, verbose=0)
+        predicted_word_index = np.argmax(predicted, axis=1)[0]
+
+        output_word = ""
+        for word, index in tokenizer.word_index.items():
+            if index == predicted_word_index:
+                output_word = word
+                break
+
+        seed_text += " " + output_word
+
+    return seed_text
 
 
 # Streamlit UI
@@ -45,5 +61,5 @@ if st.button("Predict"):
     if input_text.strip() == "":
         st.warning("Please enter some text.")
     else:
-        next_word = predict_next_word(input_text)
+        next_word = generate_text(input_text, next_words=num_words)
         st.success(f"👉 Next word: **{next_word}**")
